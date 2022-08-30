@@ -1,4 +1,4 @@
-module majic
+module github.com/bobg/majic
 
 go 1.19
 
