@@ -111,24 +111,3 @@ type pricesObj struct {
 	USDEtched string `json:"usd_etched"`
 }
 
-// A rateLimitedRoundTripper is a RoundTripper with a rate limit.
-// Its RoundTrip method calls Wait on the rate limiter
-// to make sure enough time has passed since the last call.
-// After the Wait, it uses Go's default round-tripper
-// to do the actual HTTP conversation.
-//
-// See https://pkg.go.dev/net/http#RoundTripper
-// for a description of the RoundTripper interface
-// that this type implements.
-type rateLimitedRoundTripper struct {
-	limiter *rate.Limiter
-}
-
-func (rt rateLimitedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	ctx := req.Context()
-	err := rt.limiter.Wait(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "waiting for the limiter to let us through")
-	}
-	return http.DefaultTransport.RoundTrip(req)
-}
