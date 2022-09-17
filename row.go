@@ -36,21 +36,27 @@ func (rh rowHandler) processRow(ctx context.Context, rownum int) error {
 		}
 	}
 
-	var (
-		cardName, setCode string
-		foil, ok          bool
-	)
 	if len(row) <= rh.cardNameCol {
 		// This row does not have a card name in it.
 		return nil
 	}
-	cardName, ok = row[rh.cardNameCol].(string)
+
+	cardName, ok := row[rh.cardNameCol].(string)
 	if !ok {
 		// The value in this row's Card Name column is somehow not a string.
 		return nil
 	}
+
+	var setCode string
 	if len(row) > rh.setCodeCol {
 		setCode, _ = row[rh.setCodeCol].(string)
+	}
+
+	var foil bool
+	if len(row) > rh.foilCol {
+		val := row[rh.foilCol] // TODO: figure out what type val has.
+		fmt.Printf("xxx The type of the foil-column value is %T and it looks like: %v\n", val, val)
+		foil, _ = val.(bool) // TODO: adjust based on what we find out from the output above.
 	}
 
 	// Make a copy of the baseURL.
@@ -126,6 +132,7 @@ func cellName(sheetName string, row, col int) string {
 	return fmt.Sprintf("%s!%s%d", sheetName, colName(col), row+1)
 }
 
+// This returns A through Z for the first 26 columns, AA-AZ for the next 26, then BA-BZ, etc.
 func colName(col int) string {
 	if col < 26 {
 		return string(byte(col) + 'A')
