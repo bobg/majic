@@ -13,7 +13,7 @@ import (
 )
 
 type rowHandler struct {
-	sheetKey                                                   string
+	sheetKey, sheetName                                        string
 	rows                                                       [][]any
 	cardNameCol, setCodeCol, foilCol, lastUpdatedCol, priceCol int
 	valuesSvc                                                  *sheets.SpreadsheetsValuesService
@@ -87,7 +87,7 @@ func (rh rowHandler) processRow(ctx context.Context, rownum int) error {
 	}
 
 	// Set the price in the spreadsheet.
-	cell := cellName(rownum, rh.priceCol)
+	cell := cellName(rh.sheetName, rownum, rh.priceCol)
 	vr := &sheets.ValueRange{Range: cell, Values: [][]any{{price}}}
 	_, err = rh.valuesSvc.Update(rh.sheetKey, cell, vr).Context(ctx).ValueInputOption("RAW").Do()
 	if err != nil {
@@ -95,7 +95,7 @@ func (rh rowHandler) processRow(ctx context.Context, rownum int) error {
 	}
 
 	// Set the last-updated time.
-	cell = cellName(rownum, rh.lastUpdatedCol)
+	cell = cellName(rh.sheetName, rownum, rh.lastUpdatedCol)
 	vr = &sheets.ValueRange{Range: cell, Values: [][]any{{time.Now().Format(time.RFC3339)}}}
 	_, err = rh.valuesSvc.Update(rh.sheetKey, cell, vr).Context(ctx).ValueInputOption("RAW").Do()
 	if err != nil {
@@ -122,8 +122,8 @@ type pricesObj struct {
 }
 
 // Row and col are both zero-based.
-func cellName(row, col int) string {
-	return fmt.Sprintf("%s%d", colName(col), row+1)
+func cellName(sheetName string, row, col int) string {
+	return fmt.Sprintf("%s!%s%d", sheetName, colName(col), row+1)
 }
 
 func colName(col int) string {
